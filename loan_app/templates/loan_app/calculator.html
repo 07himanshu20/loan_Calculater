@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loan Payment Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS and Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0"><i class="bi bi-cash-coin"></i> Loan Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Main Form -->
+                        <form method="post" id="main-form">
+                            {% csrf_token %}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Principal Amount</label>
+                                        {{ loan_form.principal }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Interest Rate (%)</label>
+                                        {{ loan_form.interest_rate }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Interest Mode</label>
+                                        {{ loan_form.interest_mode }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Start Date</label>
+                                        {{ loan_form.start_date }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <h4 class="mb-0"><i class="bi bi-wallet2"></i> Payment History</h4>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Payment Add Form -->
+                                    <div class="mb-4">
+                                        <h5>Add New Payment</h5>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <input type="date" name="date" class="form-control">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="number" name="amount" step="0.01" min="0.01" class="form-control" placeholder="Amount">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" name="add_payment" class="btn btn-success w-100">
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment List -->
+                                    <div class="mt-4">
+                                        <h5>Added Payments</h5>
+                                        {% if payments %}
+                                            <div class="payment-history">
+                                                {% for payment in payments %}
+                                                <div class="payment-row d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>Date:</strong> {{ payment.date }} 
+                                                        <strong>Amount:</strong> ₹{{ payment.amount|floatformat:2 }}
+                                                    </div>
+                                                    <div>
+                                                        <button type="submit" name="remove_payment" value="{{ forloop.counter0 }}" class="btn btn-sm btn-danger">
+                                                            <i class="bi bi-trash"></i> Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-info">
+                                                No payments added yet. Add payments using the form above.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="submit" name="reset" id="reset-btn" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-repeat"></i> Reset All
+                                </button>
+                                <button type="submit" name="calculate" class="btn btn-primary">
+                                    <i class="bi bi-calculator"></i> Calculate Loan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="row mt-4">
+            <div class="col-lg-8 mx-auto">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

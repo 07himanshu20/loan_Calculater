@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loan Calculation Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    {% extends "loan_app/base.html" %}
+
+    {% block content %}
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card result-card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="bi bi-graph-up"></i> Loan Calculation Results</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card summary-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Loan Summary</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Principal:</span>
+                                            <span>₹{{ principal|floatformat:2 }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Interest Rate:</span>
+                                            <span>{{ rate }}% ({{ mode|title }})</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Start Date:</span>
+                                            <span>{{ start_date }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Total Payments:</span>
+                                            <span>₹{{ total_paid|floatformat:2 }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Total Interest:</span>
+                                            <span>₹{{ total_interest|floatformat:2 }}</span>
+                                        </li>
+                                        {% if overpayment > 0 %}
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Overpayment:</span>
+                                            <span>₹{{ overpayment|floatformat:2 }}</span>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Current Status</h5>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6>As of {{ today }}</h6>
+                                            <p class="mb-0">Final interest accrued: ₹{{ final_interest|floatformat:2 }}</p>
+                                        </div>
+                                        <div class="outstanding {% if current_balance > 0 %}positive{% else %}negative{% endif %}">
+                                            {% if current_balance > 0 %}
+                                                Outstanding: ₹{{ current_balance|floatformat:2 }}
+                                            {% else %}
+                                                Loan Fully Settled!
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="progress mb-3" style="height: 25px;">
+                                        {% if current_balance > 0 %}
+                                        <div class="progress-bar bg-danger" 
+                                             style="width: {{ current_balance|div:principal|mul:100 }}%">
+                                            Outstanding
+                                        </div>
+                                        <div class="progress-bar bg-success" 
+                                             style="width: {{ total_paid|div:principal|mul:100 }}%">
+                                            Repaid
+                                        </div>
+                                        {% else %}
+                                        <div class="progress-bar bg-success" style="width: 100%">
+                                            Fully Repaid
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <span class="badge bg-danger">Outstanding: ₹{{ current_balance|floatformat:2 }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success">Repaid: ₹{{ total_paid|floatformat:2 }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Payment History</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if payment_history %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Days Since Last</th>
+                                            <th>Interest Accrued</th>
+                                            <th>Payment Amount</th>
+                                            <th>Principal Paid</th>
+                                            <th>Overpayment</th>
+                                            <th>New Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in payment_history %}
+                                        <tr>
+                                            <td>{{ payment.date }}</td>
+                                            <td>{{ payment.days }}</td>
+                                            <td>₹{{ payment.interest|floatformat:2 }}</td>
+                                            <td>₹{{ payment.payment|floatformat:2 }}</td>
+                                            <td>₹{{ payment.principal_paid|floatformat:2 }}</td>
+                                            <td>
+                                                {% if payment.overpayment > 0 %}
+                                                ₹{{ payment.overpayment|floatformat:2 }}
+                                                {% else %}
+                                                -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if payment.new_balance > 0 %}
+                                                ₹{{ payment.new_balance|floatformat:2 }}
+                                                {% else %}
+                                                <span class="badge bg-success">Paid Off</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                No payments recorded for this loan.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{% url 'calculator' %}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Back to Calculator
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
